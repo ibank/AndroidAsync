@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -31,12 +32,21 @@ class SocketIOConnection {
     ArrayList<SocketIOClient> clients = new ArrayList<SocketIOClient>();
     WebSocket webSocket;
     SocketIORequest request;
+    private long mLastReceived = 0;    
 
     public SocketIOConnection(Handler handler, AsyncHttpClient httpClient, SocketIORequest request) {
         this.handler = handler;
         this.httpClient = httpClient;
         this.request = request;
     }
+    
+    public boolean isLiveConnection(){
+        if( System.currentTimeMillis() - mLastReceived > 25000 )
+            return false;
+        else
+            return true;
+    }
+    
 
     public boolean isConnected() {
         return webSocket != null && webSocket.isOpen();
@@ -326,6 +336,11 @@ class SocketIOConnection {
             }
         };
     }
+    
+    private void updateLastReceived(){
+        Date now = new Date();
+        mLastReceived = now.getTime();
+    }      
 
     private void attach() {
         setupHeartbeat();
@@ -343,6 +358,7 @@ class SocketIOConnection {
             @Override
             public void onStringAvailable(String message) {
                 try {
+                    updateLastReceived();
 //                    Log.d(TAG, "Message: " + message);
                     String[] parts = message.split(":", 4);
                     int code = Integer.parseInt(parts[0]);

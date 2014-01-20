@@ -181,6 +181,10 @@ public class SocketIOClient extends EventEmitter {
         this.connection = connection;
         this.connectCallback = callback;
     }
+    
+    public boolean isLiveConnection(){
+        return connection.isLiveConnection();
+    }
 
     public boolean isConnected() {
         return connected && !disconnected && connection.isConnected();
